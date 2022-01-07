@@ -1,0 +1,62 @@
+<template>
+  <div class="max-w-xl mx-auto px-4 sm:px-6 lg:px-8">
+    <label for="email" class="block text-sm font-medium text-gray-700"
+      >RSS Feed URL</label
+    >
+    <div class="mt-1">
+      <input
+        type="url"
+        name="url"
+        id="url"
+        v-model="url"
+        class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+        placeholder="https://rss.your-org.org/feed/"
+        aria-describedby="rss-url"
+      />
+    </div>
+    <button
+      @click="getRssFeed()"
+      type="button"
+      class="mt-2 inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+    >
+      Get Feed
+    </button>
+  </div>
+</template>
+
+<script>
+import { ref } from "vue";
+export default {
+  setup() {
+    const url = ref("https://anchor.fm/s/3e9db190/podcast/rss");
+    const feedItems = ref([]);
+    function getRssFeed() {
+      const feedUrl = url.value;
+      return fetch(feedUrl)
+        .then((response) => response.text())
+        .then((str) => new window.DOMParser().parseFromString(str, "text/xml"))
+        .then((data) => {
+          const items = data.querySelectorAll("item");
+          console.log("ITEMS", items);
+          items.forEach((item) => {
+            feedItems.value.push({
+              title: item.querySelector("title").innerHTML,
+              link: item.querySelector("link").innerHTML,
+              url: item.querySelector("enclosure").getAttribute("url"),
+              description: item.querySelector("description").innerHTML,
+              pubDate: item.querySelector("pubDate").innerHTML,
+              guid: item.querySelector("guid").innerHTML,
+            });
+          });
+        });
+    }
+    return {
+      url,
+      feedItems,
+      getRssFeed,
+    };
+  },
+};
+</script>
+
+<style lang="scss" scoped></style>
