@@ -21,21 +21,39 @@
     >
       Get Feed
     </button>
+    <podcast-brief v-if="podcast" :podcast="podcast" />
   </div>
 </template>
 
 <script>
 import { ref } from "vue";
+import PodcastBrief from "./PodcastBrief.vue";
 export default {
+  components: {
+    PodcastBrief,
+  },
+
   setup() {
     const url = ref("https://anchor.fm/s/3e9db190/podcast/rss");
     const feedItems = ref([]);
+    const podcast = ref({});
+
     function getRssFeed() {
       const feedUrl = url.value;
       return fetch(feedUrl)
         .then((response) => response.text())
         .then((str) => new window.DOMParser().parseFromString(str, "text/xml"))
         .then((data) => {
+          console.log("Data: ", data);
+          console.log("Data TItle: ", data.querySelector("title").textContent);
+          podcast.value.imageUrl = data
+            .querySelector("image")
+            .querySelector("url").innerHTML;
+          podcast.value.title = data.querySelector("title").textContent;
+          podcast.value.description =
+            data.querySelector("description").textContent;
+
+          const podImage = data.querySelector("image");
           const items = data.querySelectorAll("item");
           console.log("ITEMS", items);
           items.forEach((item) => {
@@ -53,6 +71,7 @@ export default {
     return {
       url,
       feedItems,
+      podcast,
       getRssFeed,
     };
   },
