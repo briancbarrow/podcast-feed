@@ -1,7 +1,7 @@
 <template>
   <div class="max-w-xl mx-auto px-4 sm:px-6 lg:px-8">
     <label for="email" class="block text-sm font-medium text-gray-700"
-      >RSS Feed URL</label
+      >Podcast RSS Feed URL</label
     >
     <div class="mt-1">
       <input
@@ -21,57 +21,72 @@
     >
       Get Feed
     </button>
-    <podcast-brief v-if="podcast" :podcast="podcast" />
+    <podcast-info v-if="podcast.title && !requestError" :podcast="podcast" />
+    <info-error v-if="requestError" />
   </div>
 </template>
 
 <script>
 import { ref } from "vue";
-import PodcastBrief from "./PodcastBrief.vue";
+import PodcastInfo from "./PodcastInfo.vue";
+import InfoError from "./InfoError.vue";
 export default {
   components: {
-    PodcastBrief,
+    PodcastInfo,
+    InfoError,
   },
 
   setup() {
     const url = ref("https://anchor.fm/s/3e9db190/podcast/rss");
     const feedItems = ref([]);
     const podcast = ref({});
+    const requestError = ref(false);
 
     function getRssFeed() {
+      requestError.value = false;
       const feedUrl = url.value;
-      return fetch(feedUrl)
-        .then((response) => response.text())
-        .then((str) => new window.DOMParser().parseFromString(str, "text/xml"))
-        .then((data) => {
-          console.log("Data: ", data);
-          console.log("Data TItle: ", data.querySelector("title").textContent);
-          podcast.value.imageUrl = data
-            .querySelector("image")
-            .querySelector("url").innerHTML;
-          podcast.value.title = data.querySelector("title").textContent;
-          podcast.value.description =
-            data.querySelector("description").textContent;
+      return (
+        fetch(feedUrl)
+          // this returns a promise so we need to convert it to a string
+          .then((response) => response.text())
+          // this next line is to parse the xml response
+          .then((str) =>
+            new window.DOMParser().parseFromString(str, "text/xml")
+          )
+          .then((data) => {
+            console.log("Data: ", data);
+            // console.log("Data TItle: ", data.querySelector("title").textContent);
+            podcast.value.imageUrl = data
+              .querySelector("image")
+              .querySelector("url").innerHTML;
+            podcast.value.title = data.querySelector("title").textContent;
+            podcast.value.description =
+              data.querySelector("description").textContent;
 
-          const podImage = data.querySelector("image");
-          const items = data.querySelectorAll("item");
-          console.log("ITEMS", items);
-          items.forEach((item) => {
-            feedItems.value.push({
-              title: item.querySelector("title").innerHTML,
-              link: item.querySelector("link").innerHTML,
-              url: item.querySelector("enclosure").getAttribute("url"),
-              description: item.querySelector("description").innerHTML,
-              pubDate: item.querySelector("pubDate").innerHTML,
-              guid: item.querySelector("guid").innerHTML,
+            const podImage = data.querySelector("image");
+            const items = data.querySelectorAll("item");
+            // console.log("ITEMS", items);
+            items.forEach((item) => {
+              feedItems.value.push({
+                title: item.querySelector("title").innerHTML,
+                link: item.querySelector("link").innerHTML,
+                url: item.querySelector("enclosure").getAttribute("url"),
+                description: item.querySelector("description").innerHTML,
+                pubDate: item.querySelector("pubDate").innerHTML,
+                guid: item.querySelector("guid").innerHTML,
+              });
             });
-          });
-        });
+          })
+          .catch((err) => {
+            requestError.value = true;
+          })
+      );
     }
     return {
       url,
       feedItems,
       podcast,
+      requestError,
       getRssFeed,
     };
   },
