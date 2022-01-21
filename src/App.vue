@@ -1,25 +1,30 @@
 <template>
-  <auth v-if="!store.user" />
-  <rss-input v-else />
+  <auth v-if="!store.state.user" />
+  <podcast-input-feed v-else />
 </template>
 
 <script>
 import { store } from "./store";
 import { supabase } from "./supabase";
 
-import RssInput from "./components/RssInput.vue";
+import PodcastInputFeed from "./components/PodcastInputFeed.vue";
 import Auth from "./components/Auth.vue";
 export default {
   components: {
-    RssInput,
+    PodcastInputFeed,
     Auth,
   },
   setup() {
     // we initially verify if a user is logged in with Supabase
-    store.user = supabase.auth.user();
+    store.state.user = supabase.auth.user();
     // we then set up a listener to update the store when the user changes either by logging in or out
-    supabase.auth.onAuthStateChange((_, session) => {
-      store.user = session.user;
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (event == "SIGNED_OUT") {
+        store.state.user = null;
+      } else {
+        store.getPodcastsFromDB();
+        store.state.user = session.user;
+      }
     });
 
     return {

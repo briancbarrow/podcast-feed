@@ -1,7 +1,7 @@
 <template>
   <div class="podcast-info">
     <div class="image-container">
-      <img :src="podcast.imageUrl" alt="" />
+      <img :src="podcast.image_url" alt="" />
     </div>
     <div class="podcast-text">
       <div class="flex-1">
@@ -15,10 +15,24 @@
         </div>
       </div>
     </div>
+    <!-- Adding button to add podcast to DB -->
+    <div v-if="isInUserPodcasts" class="bg-green-300 p-0.5 text-center">
+      In Your Podcasts
+    </div>
+    <button
+      v-else
+      class="mt-2 inline-flex items-center justify-center w-1/2 mx-auto mb-2 px-2.5 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+      @click="addPodcast"
+    >
+      Add to My Podcasts
+    </button>
   </div>
 </template>
 
 <script>
+import { store } from "../store";
+import { supabase } from "../supabase";
+
 export default {
   props: {
     podcast: {
@@ -26,9 +40,38 @@ export default {
       required: true,
     },
   },
-  setup() {
-    return {};
+  computed: {
+    isInUserPodcasts() {
+      return store.state.podcasts.some(
+        (podcast) => podcast.rss_url === this.podcast.rssUrl
+      );
+    },
   },
+  methods: {
+    addPodcast() {
+      if (this.isInUserPodcasts) {
+        alert("You already have this podcast in your list!");
+      } else {
+        const podcast = {
+          name: this.podcast.title,
+          image_url: this.podcast.image_url,
+          description: this.podcast.description,
+          rss_url: this.podcast.rss_url,
+          user_id: store.state.user.id,
+        };
+        supabase
+          .from("podcasts")
+          .insert(podcast)
+          .then(({ body }) => {
+            store.addPodcastToStore(body[0]);
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      }
+    },
+  },
+  setup() {},
 };
 </script>
 

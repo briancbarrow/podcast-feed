@@ -1,4 +1,5 @@
 <template>
+  <button @click="logout">Log Out</button>
   <div class="max-w-xl mx-auto px-4 sm:px-6 lg:px-8">
     <label for="email" class="block text-sm font-medium text-gray-700"
       >Podcast RSS Feed URL</label
@@ -24,10 +25,20 @@
     <podcast-info v-if="podcast.title && !requestError" :podcast="podcast" />
     <info-error v-if="requestError" />
   </div>
+  <div class="m-10">
+    <h2 class="text-left">Your Podcast Feeds</h2>
+    <ul class="podcast-feeds">
+      <li v-for="podcast in podcasts" :key="podcast.id">
+        <podcast-info :podcast="podcast" />
+      </li>
+    </ul>
+  </div>
 </template>
 
 <script>
 import { ref } from "vue";
+import { supabase } from "../supabase";
+import { store } from "../store";
 import PodcastInfo from "./PodcastInfo.vue";
 import InfoError from "./InfoError.vue";
 export default {
@@ -41,6 +52,10 @@ export default {
     const feedItems = ref([]);
     const podcast = ref({});
     const requestError = ref(false);
+
+    function logout() {
+      supabase.auth.signOut();
+    }
 
     function getRssFeed() {
       requestError.value = false;
@@ -56,14 +71,14 @@ export default {
           .then((data) => {
             console.log("Data: ", data);
             // console.log("Data TItle: ", data.querySelector("title").textContent);
-            podcast.value.imageUrl = data
+            podcast.value.image_url = data
               .querySelector("image")
               .querySelector("url").innerHTML;
             podcast.value.title = data.querySelector("title").textContent;
             podcast.value.description =
               data.querySelector("description").textContent;
+            podcast.value.rss_url = feedUrl;
 
-            const podImage = data.querySelector("image");
             const items = data.querySelectorAll("item");
             // console.log("ITEMS", items);
             items.forEach((item) => {
@@ -87,6 +102,9 @@ export default {
       feedItems,
       podcast,
       requestError,
+      podcasts: store.state.podcasts,
+
+      logout,
       getRssFeed,
     };
   },
