@@ -7,8 +7,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@deepgram/sdk": "^1.2.0",
     "@supabase/supabase-js": "^1.29.1",
-    "vue": "^3.2.25"
+    "vue": "^3.2.25",
+    "vue-router": "^4.0.12"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^2.0.0",

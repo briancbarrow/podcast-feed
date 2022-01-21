@@ -1,5 +1,4 @@
 <template>
-  <button @click="logout">Log Out</button>
   <div class="max-w-xl mx-auto px-4 sm:px-6 lg:px-8">
     <label for="email" class="block text-sm font-medium text-gray-700"
       >Podcast RSS Feed URL</label
@@ -26,10 +25,21 @@
     <info-error v-if="requestError" />
   </div>
   <div class="m-10">
-    <h2 class="text-left">Your Podcast Feeds</h2>
-    <ul class="podcast-feeds">
-      <li v-for="podcast in podcasts" :key="podcast.id">
-        <podcast-info :podcast="podcast" />
+    <h2 class="text-left font-bold text-lg">Your Podcast Feeds</h2>
+    <ul class="podcast-feeds grid grid-cols-3">
+      <li
+        v-for="pod in store.state.podcasts"
+        :key="pod.id"
+        class="m-4 border border-indigo-700 col-span-1 rounded"
+      >
+        <a :href="`/podcast/${pod.id}`" class="flex items-center">
+          <img
+            :src="pod.image_url"
+            :alt="`logo for ${pod.name}`"
+            class="rounded-l w-20"
+          />
+          <p class="text-left ml-4">{{ pod.name }}</p>
+        </a>
       </li>
     </ul>
   </div>
@@ -49,13 +59,8 @@ export default {
 
   setup() {
     const url = ref("https://anchor.fm/s/3e9db190/podcast/rss");
-    const feedItems = ref([]);
     const podcast = ref({});
     const requestError = ref(false);
-
-    function logout() {
-      supabase.auth.signOut();
-    }
 
     function getRssFeed() {
       requestError.value = false;
@@ -78,19 +83,6 @@ export default {
             podcast.value.description =
               data.querySelector("description").textContent;
             podcast.value.rss_url = feedUrl;
-
-            const items = data.querySelectorAll("item");
-            // console.log("ITEMS", items);
-            items.forEach((item) => {
-              feedItems.value.push({
-                title: item.querySelector("title").innerHTML,
-                link: item.querySelector("link").innerHTML,
-                url: item.querySelector("enclosure").getAttribute("url"),
-                description: item.querySelector("description").innerHTML,
-                pubDate: item.querySelector("pubDate").innerHTML,
-                guid: item.querySelector("guid").innerHTML,
-              });
-            });
           })
           .catch((err) => {
             requestError.value = true;
@@ -99,12 +91,11 @@ export default {
     }
     return {
       url,
-      feedItems,
       podcast,
       requestError,
-      podcasts: store.state.podcasts,
+      store,
 
-      logout,
+      // logout,
       getRssFeed,
     };
   },

@@ -1,6 +1,11 @@
 <template>
   <auth v-if="!store.state.user" />
-  <podcast-input-feed v-else />
+  <div class="max-w-4xl m-auto" v-else>
+    <nav class="flex justify-between py-5 text-center">
+      <a href="/" class="m-auto">Home</a>
+    </nav>
+    <router-view></router-view>
+  </div>
 </template>
 
 <script>

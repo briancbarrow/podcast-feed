@@ -1,7 +1,7 @@
 <template>
   <div class="podcast-info">
     <div class="image-container">
-      <img :src="podcast.image_url" alt="" />
+      <img :src="podcast.image_url" alt="" class="w-fit m-auto" />
     </div>
     <div class="podcast-text">
       <div class="flex-1">
@@ -43,7 +43,7 @@ export default {
   computed: {
     isInUserPodcasts() {
       return store.state.podcasts.some(
-        (podcast) => podcast.rss_url === this.podcast.rssUrl
+        (podcast) => podcast.rss_url === this.podcast.rss_url
       );
     },
   },
@@ -84,7 +84,7 @@ export default {
 }
 
 .podcast-info .image-container img {
-  @apply h-48 w-full object-cover;
+  @apply h-48;
 }
 
 .podcast-info .podcast-text {
